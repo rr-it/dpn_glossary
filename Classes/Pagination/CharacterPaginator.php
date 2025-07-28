@@ -103,9 +103,16 @@ class CharacterPaginator implements CharacterPaginatorInterface
         $query = $this->queryResult->getQuery();
 
         try {
-            $query->matching(
-                $query->like($this->field, $character . '%')
-            );
+            $characters = mb_str_split($character);
+            $characterConstraints = [];
+            foreach ($characters as $singleCharacter) {
+                $characterConstraints[] = $query->like($this->field, $singleCharacter . '%');
+            }
+            if (count($characterConstraints) > 0) {
+                $query->matching(
+                    $query->logicalOr(...$characterConstraints)
+                );
+            }
         } catch (InvalidQueryException) {
             // ignore
         }
